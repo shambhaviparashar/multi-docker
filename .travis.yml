@@ -1,0 +1,22 @@
+sudo: required
+services:
+    - docker 
+
+before_install:
+    - docker build -t shambhavipar/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run shambhavipar/react-test npm test -- --coverage
+
+after_success:
+    - docker build -t shambhavipar/multi-client ./client
+    - docker build -t shambhavipar/multi-nginx ./nginx
+    - docker build -t shambhavipar/multi-server ./server
+    - docker build -t shambhavipar/multi-worker ./worker
+    #Log in to the docker CLI
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    #Take those images and push them to Docker hub
+    - docker push shambhavipar/multi-client
+    - docker push shambhavipar/multi-nginx
+    - docker push shambhavipar/multi-server
+    - docker push shambhavipar/multi-worker
